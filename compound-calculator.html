@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="머니랩 복리 계산기 - 초기 투자금과 월 적립금으로 미래 자산을 예측하세요. Chart.js 그래프로 연도별 자산 증가 추이를 시각화합니다.">
+    <meta name="keywords" content="복리계산기, 복리계산, 투자계산기, 자산계산, 적립식투자, 머니랩">
+    <title>복리 계산기 - 머니랩 (Money Lab)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header class="header" id="header">
+        <nav class="nav-container">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">💰</span>
+                <span class="logo-text">Money Lab</span>
+            </a>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="메뉴 열기">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">홈</a></li>
+                <li><a href="compound-calculator.html" class="nav-link active">복리계산기</a></li>
+                <li><a href="loan-calculator.html" class="nav-link">대출계산기</a></li>
+                <li><a href="guide.html" class="nav-link">금융가이드</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="ad-space ad-top">
+        <div class="ad-placeholder">광고 영역</div>
+    </div>
+
+    <section class="calculator-section" id="calculator">
+        <div class="container">
+            <div class="calculator-wrapper">
+                <div class="calculator-header">
+                    <h1>💰 복리 수익 계산기</h1>
+                    <p>초기 투자금과 월 적립금으로 미래 자산을 예측해 보세요</p>
+                </div>
+
+                <div class="calculator-body">
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="initialAmount">초기 투자금</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="initialAmount" value="1000" min="0" step="100">
+                                <span class="input-suffix">만원</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="monthlyAmount">월 적립금</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="monthlyAmount" value="50" min="0" step="10">
+                                <span class="input-suffix">만원</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="interestRate">연 수익률</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="interestRate" value="7" min="0" max="100" step="0.1">
+                                <span class="input-suffix">%</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="period">투자 기간</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="period" value="10" min="1" max="50" step="1">
+                                <span class="input-suffix">년</span>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="compoundFrequency">복리 주기</label>
+                            <div class="input-wrapper select-wrapper">
+                                <select id="compoundFrequency">
+                                    <option value="12">월복리</option>
+                                    <option value="4">분기복리</option>
+                                    <option value="1">연복리</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="calculate-btn" id="calculateBtn">
+                            <span>계산하기</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="calculator-results" id="results">
+                        <div class="results-summary">
+                            <div class="result-item">
+                                <span class="result-label">총 원금</span>
+                                <span class="result-value" id="totalPrincipal">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">총 수익금</span>
+                                <span class="result-value highlight" id="totalProfit">-</span>
+                            </div>
+                            <div class="result-item featured">
+                                <span class="result-label">최종 자산</span>
+                                <span class="result-value" id="finalAmount">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">수익률</span>
+                                <span class="result-value" id="profitRate">-</span>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="ad-space ad-middle">
+        <div class="ad-placeholder">광고 영역</div>
+    </div>
+
+    <article class="article-section">
+        <div class="container">
+            <div class="article-header">
+                <span class="article-category">복리 가이드</span>
+                <h2>복리 계산기 완벽 활용 가이드</h2>
+            </div>
+            <div class="article-content">
+                <section class="article-block">
+                    <h3>🎯 복리 계산기 사용법</h3>
+                    <p>머니랩의 복리 계산기는 정확한 복리 공식을 기반으로 미래 자산을 예측합니다. 초기 투자금, 월 적립금, 연 수익률, 투자 기간, 복리 주기를 입력하면 총 원금, 총 수익금,
+                        최종 자산, 수익률을 한눈에 확인할 수 있습니다. 특히 연도별 자산 증가 그래프를 통해 복리의 마법을 직접 눈으로 확인해 보세요.</p>
+                </section>
+                <section class="article-block">
+                    <h3>💡 효과적인 투자 전략</h3>
+                    <p>복리 효과를 극대화하려면 세 가지를 기억하세요. 첫째, 가능한 빨리 시작하세요. 시간은 복리의 가장 강력한 무기입니다. 둘째, 꾸준히 적립하세요. 매월 일정 금액을 투자하는
+                        적립식 투자는 시장 변동성을 줄여줍니다. 셋째, 수익을 재투자하세요. 배당금이나 이자를 다시 투자에 사용하면 복리 효과가 극대화됩니다.</p>
+                </section>
+            </div>
+        </div>
+    </article>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="footer-logo">
+                        <span class="logo-icon">💰</span>
+                        <span class="logo-text">Money Lab</span>
+                    </a>
+                    <p>당신의 자산을 분석하는 금융 데이터 연구소</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-section">
+                        <h4>서비스</h4>
+                        <ul>
+                            <li><a href="compound-calculator.html">복리 계산기</a></li>
+                            <li><a href="loan-calculator.html">대출 계산기</a></li>
+                            <li><a href="guide.html">금융 가이드</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-section">
+                        <h4>법적 고지</h4>
+                        <ul>
+                            <li><a href="terms.html">이용약관</a></li>
+                            <li><a href="privacy.html">개인정보처리방침</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 Money Lab. All rights reserved.</p>
+                <p class="disclaimer">본 사이트의 계산 결과는 참고용이며, 실제 투자 결정에 대한 책임은 사용자 본인에게 있습니다.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+
+</html>
