@@ -1,12 +1,12 @@
 // Money Lab - Main JavaScript
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Mobile Menu Toggle
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const navMenu = document.getElementById('navMenu');
-    
+
     if (mobileMenuBtn && navMenu) {
-        mobileMenuBtn.addEventListener('click', function() {
+        mobileMenuBtn.addEventListener('click', function () {
             navMenu.classList.toggle('active');
             this.classList.toggle('active');
         });
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Header scroll effect
     const header = document.getElementById('header');
     if (header) {
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             if (window.scrollY > 50) {
                 header.classList.add('scrolled');
             } else {
@@ -46,19 +46,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const initialAmount = parseFloat(document.getElementById('initialAmount').value) * 10000;
         const monthlyAmount = parseFloat(document.getElementById('monthlyAmount').value) * 10000;
         const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
-        const period = parseInt(document.getElementById('period').value);
+        const contributionPeriod = parseInt(document.getElementById('contributionPeriod').value);
+        const holdingPeriod = parseInt(document.getElementById('holdingPeriod').value);
         const compoundFrequency = parseInt(document.getElementById('compoundFrequency').value);
 
+        const totalPeriod = contributionPeriod + holdingPeriod;
         const ratePerPeriod = interestRate / compoundFrequency;
-        const totalPeriods = period * compoundFrequency;
         const monthlyPeriods = 12 / compoundFrequency;
 
         let yearlyData = [];
         let currentBalance = initialAmount;
         let totalContributions = initialAmount;
+        let endOfContributionAmount = 0;
 
         // Calculate year by year
-        for (let year = 0; year <= period; year++) {
+        for (let year = 0; year <= totalPeriod; year++) {
             if (year === 0) {
                 yearlyData.push({
                     year: year,
@@ -69,13 +71,19 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 // Calculate for each compound period in this year
                 for (let p = 0; p < compoundFrequency; p++) {
-                    // Add monthly contributions for this period
-                    currentBalance += monthlyAmount * monthlyPeriods;
-                    totalContributions += monthlyAmount * monthlyPeriods;
+                    // Add monthly contributions ONLY DURING contribution period
+                    if (year <= contributionPeriod) {
+                        currentBalance += monthlyAmount * monthlyPeriods;
+                        totalContributions += monthlyAmount * monthlyPeriods;
+                    }
                     // Apply interest
                     currentBalance *= (1 + ratePerPeriod);
                 }
-                
+
+                if (year === contributionPeriod) {
+                    endOfContributionAmount = currentBalance;
+                }
+
                 yearlyData.push({
                     year: year,
                     balance: currentBalance,
@@ -86,12 +94,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const finalData = yearlyData[yearlyData.length - 1];
-        
+        const growthOnlyAmount = finalData.balance - endOfContributionAmount;
+
         // Update result display
-        document.getElementById('totalPrincipal').textContent = formatCurrency(finalData.principal);
-        document.getElementById('totalProfit').textContent = '+' + formatCurrency(finalData.interest);
+        document.getElementById('totalPrincipal').textContent = formatCurrency(totalContributions);
+        if (document.getElementById('growthOnlyAmount')) {
+            document.getElementById('growthOnlyAmount').textContent = '+' + formatCurrency(growthOnlyAmount);
+        }
         document.getElementById('finalAmount').textContent = formatCurrency(finalData.balance);
-        document.getElementById('profitRate').textContent = '+' + ((finalData.interest / finalData.principal) * 100).toFixed(1) + '%';
+        if (document.getElementById('endOfContributionAmount')) {
+            document.getElementById('endOfContributionAmount').textContent = formatCurrency(endOfContributionAmount);
+        }
 
         // Update chart
         updateChart(yearlyData);
@@ -173,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         padding: 12,
                         cornerRadius: 8,
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return context.dataset.label + ': ' + context.raw.toLocaleString() + '만원';
                             }
                         }
@@ -189,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         grid: { color: 'rgba(0, 0, 0, 0.05)' },
                         ticks: {
                             font: { family: "'Noto Sans KR', sans-serif", size: 11 },
-                            callback: function(value) { return value.toLocaleString() + '만'; }
+                            callback: function (value) { return value.toLocaleString() + '만'; }
                         }
                     }
                 },
@@ -235,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 원금균등상환
             const principalPayment = loanAmount / totalMonths;
             let remainingPrincipal = loanAmount;
-            
+
             for (let i = 0; i < totalMonths; i++) {
                 const interestPayment = remainingPrincipal * monthlyRate;
                 const payment = principalPayment + interestPayment;
@@ -290,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return context.label + ': ' + context.raw.toLocaleString() + '만원';
                             }
                         }
@@ -302,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -315,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Input validation - numbers only
     document.querySelectorAll('input[type="number"]').forEach(input => {
-        input.addEventListener('input', function() {
+        input.addEventListener('input', function () {
             if (this.value < 0) this.value = 0;
         });
     });
