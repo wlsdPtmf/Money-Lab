@@ -84,6 +84,7 @@ ol {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    width: 100%;
 }
 
 /* Header */
@@ -279,7 +280,9 @@ ol {
     border-radius: var(--radius-xl);
     padding: 32px;
     box-shadow: var(--shadow-2xl);
-    min-width: 300px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
     animation: float 3s ease-in-out infinite;
 }
 
@@ -435,6 +438,12 @@ ol {
     color: var(--white);
 }
 
+@media (max-width: 480px) {
+    .calculator-header {
+        padding: 24px 16px;
+    }
+}
+
 .calculator-header h2 {
     font-size: 1.75rem;
     font-weight: 700;
@@ -455,6 +464,12 @@ ol {
     padding: 32px;
     background: var(--gray-50);
     border-right: 1px solid var(--gray-200);
+}
+
+@media (max-width: 480px) {
+    .calculator-inputs {
+        padding: 24px 16px;
+    }
 }
 
 .input-group {
@@ -538,6 +553,12 @@ ol {
     flex-direction: column;
 }
 
+@media (max-width: 480px) {
+    .calculator-results {
+        padding: 24px 16px;
+    }
+}
+
 .results-summary {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -594,6 +615,12 @@ ol {
 .article-section {
     padding: 80px 20px;
     background: var(--white);
+}
+
+@media (max-width: 768px) {
+    .article-section {
+        padding: 40px 16px;
+    }
 }
 
 .article-header {
@@ -897,23 +924,30 @@ ol {
         display: flex;
     }
 
+    .nav-container {
+        padding: 0 16px;
+    }
+
     .nav-menu {
         position: fixed;
         top: 70px;
         left: 0;
         right: 0;
+        bottom: 0;
         background: var(--white);
         flex-direction: column;
-        padding: 20px;
-        box-shadow: var(--shadow-lg);
-        transform: translateY(-100%);
+        padding: 40px 20px;
+        box-shadow: none;
+        transform: translateX(100%);
         opacity: 0;
         visibility: hidden;
         transition: all var(--transition-normal);
+        z-index: 1000;
+        overflow-y: auto;
     }
 
     .nav-menu.active {
-        transform: translateY(0);
+        transform: translateX(0);
         opacity: 1;
         visibility: visible;
     }
@@ -921,7 +955,8 @@ ol {
     .nav-link {
         width: 100%;
         text-align: center;
-        padding: 14px;
+        padding: 18px;
+        font-size: 1.25rem;
     }
 
     .hero-title {
@@ -949,6 +984,14 @@ ol {
     .footer-links {
         justify-content: center;
         gap: 48px;
+    }
+
+    .calculator-section {
+        padding: 40px 0;
+    }
+
+    .container {
+        padding: 0 16px;
     }
 }
 
