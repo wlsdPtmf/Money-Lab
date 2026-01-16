@@ -230,10 +230,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const monthlyRate = annualRate / 12;
         const totalMonths = loanTerm * 12;
 
-        let results = [];
         let totalPayment = 0;
         let totalInterest = 0;
         let monthlyPayment = 0;
+
+        // Data for chart
+        let chartData = [];
+        let currentBalance = loanAmount;
+        let accumulatedInterest = 0;
+        let accumulatedPrincipal = 0;
+
+        // Add initial state (Month 0)
+        chartData.push({
+            month: 0,
+            balance: loanAmount,
+            accumulatedInterest: 0,
+            accumulatedPrincipal: 0
+        });
 
         if (repaymentType === 'equal-payment') {
             // 원리금균등상환
@@ -244,32 +257,73 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             totalPayment = monthlyPayment * totalMonths;
             totalInterest = totalPayment - loanAmount;
+
+            // Generate monthly data
+            let tempBalance = loanAmount;
+            for (let i = 1; i <= totalMonths; i++) {
+                const interest = tempBalance * monthlyRate;
+                const principal = monthlyPayment - interest;
+                tempBalance -= principal;
+                if (tempBalance < 0) tempBalance = 0; // Fix floating point errors
+
+                accumulatedInterest += interest;
+                accumulatedPrincipal += principal;
+
+                // Push data for chart (every year or last month)
+                if (i % 12 === 0 || i === totalMonths) {
+                    chartData.push({
+                        month: i,
+                        balance: Math.round(tempBalance),
+                        accumulatedInterest: Math.round(accumulatedInterest),
+                        accumulatedPrincipal: Math.round(accumulatedPrincipal)
+                    });
+                }
+            }
         } else {
             // 원금균등상환
             const principalPayment = loanAmount / totalMonths;
-            let remainingPrincipal = loanAmount;
+            let tempBalance = loanAmount;
 
-            for (let i = 0; i < totalMonths; i++) {
-                const interestPayment = remainingPrincipal * monthlyRate;
-                const payment = principalPayment + interestPayment;
+            for (let i = 1; i <= totalMonths; i++) {
+                const interest = tempBalance * monthlyRate;
+                const payment = principalPayment + interest;
+
+                tempBalance -= principalPayment;
+                if (tempBalance < 0) tempBalance = 0;
+
                 totalPayment += payment;
-                totalInterest += interestPayment;
-                remainingPrincipal -= principalPayment;
+                totalInterest += interest;
+
+                accumulatedInterest += interest;
+                accumulatedPrincipal += principalPayment;
+
+                // Push data for chart
+                if (i % 12 === 0 || i === totalMonths) {
+                    chartData.push({
+                        month: i,
+                        balance: Math.round(tempBalance),
+                        accumulatedInterest: Math.round(accumulatedInterest),
+                        accumulatedPrincipal: Math.round(accumulatedPrincipal)
+                    });
+                }
             }
-            monthlyPayment = loanAmount / totalMonths + loanAmount * monthlyRate; // First month
+            monthlyPayment = loanAmount / totalMonths + loanAmount * monthlyRate; // First month payment for display
         }
 
         // Update display
-        document.getElementById('loanMonthlyPayment').textContent = formatCurrency(monthlyPayment);
+        document.getElementById('loanMonthlyPayment').textContent = formatCurrency(monthlyPayment) + (repaymentType === 'equal-principal' ? ' (첫달)' : '');
         document.getElementById('loanTotalInterest').textContent = formatCurrency(totalInterest);
         document.getElementById('loanTotalPayment').textContent = formatCurrency(totalPayment);
 
         // Update loan chart
-        updateLoanChart(loanAmount, totalInterest);
+        updateLoanChart(chartData);
+
+        // Add animation
+        document.getElementById('results').classList.add('fade-in');
     }
 
     let loanChart = null;
-    function updateLoanChart(principal, interest) {
+    function updateLoanChart(data) {
         const ctx = document.getElementById('loanChart');
         if (!ctx) return;
 
@@ -277,35 +331,85 @@ document.addEventListener('DOMContentLoaded', function () {
             loanChart.destroy();
         }
 
+        const labels = data.map((d, index) => index === 0 ? '시작' : (d.month / 12) + '년');
+        const balanceData = data.map(d => Math.round(d.balance / 10000));
+        const interestData = data.map(d => Math.round(d.accumulatedInterest / 10000));
+        const principalData = data.map(d => Math.round(d.accumulatedPrincipal / 10000));
+
         loanChart = new Chart(ctx, {
-            type: 'doughnut',
+            type: 'line',
             data: {
-                labels: ['원금', '이자'],
-                datasets: [{
-                    data: [Math.round(principal / 10000), Math.round(interest / 10000)],
-                    backgroundColor: ['#0052cc', '#ef4444'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
+                labels: labels,
+                datasets: [
+                    {
+                        label: '대출 잔액 (만원)',
+                        data: balanceData,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 3
+                    },
+                    {
+                        label: '누적 상환 원금 (만원)',
+                        data: principalData,
+                        borderColor: '#059669',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '누적 이자 (만원)',
+                        data: interestData,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'transparent',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }
+                ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '60%',
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: 'top',
                         labels: {
                             usePointStyle: true,
-                            padding: 20,
                             font: { family: "'Noto Sans KR', sans-serif", size: 12 }
                         }
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { family: "'Noto Sans KR', sans-serif", size: 14 },
+                        bodyFont: { family: "'Noto Sans KR', sans-serif", size: 13 },
+                        padding: 12,
+                        cornerRadius: 8,
                         callbacks: {
                             label: function (context) {
-                                return context.label + ': ' + context.raw.toLocaleString() + '만원';
+                                return context.dataset.label + ': ' + context.raw.toLocaleString() + '만원';
                             }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 10 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                        ticks: {
+                            callback: function (value) { return value.toLocaleString() + '만'; }
                         }
                     }
                 }
